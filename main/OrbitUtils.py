@@ -183,7 +183,7 @@ class MeanAnomalyTrueAnomaly:
 
         INPUT:
         ----------
-        mean_anomaly : float
+        mean_anomaly [rad]: float
         """
         self.meanAnomaly = mean_anomaly
         if self.meanAnomaly >= np.pi:
@@ -200,7 +200,7 @@ class MeanAnomalyTrueAnomaly:
 
         INPUT:
         ----------
-        true_anomaly : float
+        true_anomaly [rad]: float
         """
         self.trueAnomaly = true_anomaly
         eccentric_anomaly = 2 * np.arctan(np.sqrt((1 - self.eccentricityNorm)/(1 + self.eccentricityNorm)) *
