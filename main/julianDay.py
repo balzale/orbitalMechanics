@@ -56,9 +56,24 @@ def get_greenwich_sideral_time(year, month, day, universal_time):
     OUTPUT:
     ------
     greenwich_sideral_time = greenwich sideral time at the date of interest"""
-    tzero = (j0(year, month, day) - 2451545)/36525
+    tzero = t_zero(j0(year, month, day))
     theta_gzero = 100.4606184 + 36000.77004 * tzero + 0.000387933 * tzero ** 2 - 2.583 * 1e-8 * tzero ** 3
-    # universal_time = hours + minutes / 60 + seconds / 3600
     greenwich_sideral_time_first = theta_gzero + 360.98564724*(universal_time / 24)
     greenwich_sideral_time = greenwich_sideral_time_first - np.trunc(greenwich_sideral_time_first/360)*360
     return greenwich_sideral_time
+
+
+def t_zero(julian):
+    """This function returns T0 as defined in H. Curtis - Orbital Mechanics for Engineering Students
+        by equation (5.49).
+
+        INPUT:
+        ------
+        julian  =   julian day
+
+        OUTPUT:
+        ------
+        T0      =   T0 in Julian centuries
+        """
+    t0 = (julian - 2451545)/36525
+    return t0

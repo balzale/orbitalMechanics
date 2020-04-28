@@ -1,4 +1,5 @@
 import numpy as np
+import scipy as sp
 
 
 def state_vector_derivative(x0, t0, mu):
@@ -143,3 +144,74 @@ def object_sky_locator(object_latitude, object_longitude, observer_latitude, obs
     elevation_deg = np.rad2deg(elevation_rad)
     azimuth_deg = np.rad2deg(azimuth_rad)
     return azimuth_deg, elevation_deg
+
+
+class MeanAnomalyTrueAnomaly:
+    """
+    This class can be used to compute the true anomaly given the mean anomaly and vice versa. The only input needed is
+    the eccentricity norm of the orbit. Both are given in radians.
+
+    Attributes
+    ----------
+    meanAnomaly : float
+        mean anomaly of the orbit [rad]
+    trueAnomaly : float
+        true anomaly of the orbit [rad]
+    eccentricityNorm : float
+        norm of the eccentricity of the orbit [-]
+
+    Methods
+    -------
+    set_mean_anomaly(mean_anomaly)
+        Set the mean anomaly and change accordingly the true anomaly attribute.
+    set_true_anomaly(true_anomaly)
+        Set the true anomaly and change accordingly the mean anomaly attribute.
+    """
+    def __init__(self, eccentricity_norm):
+        """
+        Parameters
+        ----------
+        eccentricity_norm : float
+            Norm of the eccentricity of the orbit.
+        """
+        self.meanAnomaly = 0.0
+        self.trueAnomaly = 0.0
+        self.eccentricityNorm = eccentricity_norm
+
+    def set_mean_anomaly(self, mean_anomaly):
+        """This function sets the mean anomaly and compute and change accordingly the true anomaly.
+
+        INPUT:
+        ----------
+        mean_anomaly : float
+        """
+        self.meanAnomaly = mean_anomaly
+        if self.meanAnomaly >= np.pi:
+            eccentric_anomaly_zero = self.meanAnomaly - self.eccentricityNorm / 2
+        else:
+            eccentric_anomaly_zero = self.meanAnomaly + self.eccentricityNorm / 2
+        eccentric_anomaly = sp.optimize.newton(self._mean_anomaly_func, eccentric_anomaly_zero,
+                                               self._mean_anomaly_derivative, tol=1e-6)
+        self.trueAnomaly = 2 * np.arctan(np.sqrt((1 + self.eccentricityNorm) / (1 - self.eccentricityNorm))
+                                         * np.tan(eccentric_anomaly / 2))
+
+    def set_true_anomaly(self, true_anomaly):
+        """This function sets the true anomaly and compute and change accordingly the mean anomaly.
+
+        INPUT:
+        ----------
+        true_anomaly : float
+        """
+        self.trueAnomaly = true_anomaly
+        eccentric_anomaly = 2 * np.arctan(np.sqrt((1 - self.eccentricityNorm)/(1 + self.eccentricityNorm)) *
+                                          np.tan(self.trueAnomaly/2))
+        self.meanAnomaly = eccentric_anomaly - self.eccentricityNorm * np.sin(eccentric_anomaly)
+
+    def _mean_anomaly_func(self, eccentric_anomaly):
+        mean_anomaly = eccentric_anomaly - self.eccentricityNorm * np.sin(eccentric_anomaly) - self.meanAnomaly
+        return mean_anomaly
+
+    def _mean_anomaly_derivative(self, eccentric_anomaly):
+        mean_anomaly_derivative = 1 - self.eccentricityNorm * np.cos(eccentric_anomaly)
+        return mean_anomaly_derivative
+
