@@ -13,6 +13,23 @@ def state_vector_derivative(x0, t0, mu):
     return np.r_[xdot, xdotdot]
 
 
+def wrap_to_180(angle):
+    """This function wrap the input angle between -180° and 180.
+
+    INPUT:
+    -------
+    angle [deg]: float or array_like
+        angle (or array of angles) that needs to be wrapped.
+
+    OUTPUT:
+    -------
+    wrapped_angle [deg]: float or array_like
+         wrapped angle (or array of angle) between -180° and 180°.
+    """
+    wrapped_angle = (angle + 180) % 360 - 180
+    return wrapped_angle
+
+
 def state_vector2orbital_elements(radius_vect, velocity_vect, mu):
     """Returns the orbital elements given the state vector.
 
@@ -81,7 +98,7 @@ def orbital_elements2state_vector(inclination, angular_momentum_norm, right_asce
     state_vector		= State vector [rx, ry, rz, vx, vy, vz]	- [km, km/s]
     """
     radius_vector_perifocal = angular_momentum_norm ** 2 / (mu * (1 + eccentricity_norm * np.cos(true_anomaly))) * \
-                              np.array([np.cos(true_anomaly), np.sin(true_anomaly), 0])
+        np.array([np.cos(true_anomaly), np.sin(true_anomaly), 0])
     velocity_vector_perifocal = mu / angular_momentum_norm * np.array(
         [-np.sin(true_anomaly), eccentricity_norm + np.cos(true_anomaly), 0])
     rot_matrix_perifocal2_geocentric_equat = np.array([[np.cos(right_ascension) * np.cos(argument_of_perigee) -
@@ -140,7 +157,7 @@ def object_sky_locator(object_latitude, object_longitude, observer_latitude, obs
             observer_latitude_rad) * np.cos(
             object_observer_angle_on_geodetic) / \
         (np.cos(observer_latitude_rad) * np.sin(object_observer_angle_on_geodetic))
-    azimuth_rad = 2*np.pi - np.arctan(sin_explementary_of_azimuth, cos_explementary_of_azimuth)
+    azimuth_rad = 2 * np.pi - np.arctan(sin_explementary_of_azimuth, cos_explementary_of_azimuth)
     elevation_deg = np.rad2deg(elevation_rad)
     azimuth_deg = np.rad2deg(azimuth_rad)
     return azimuth_deg, elevation_deg
@@ -167,6 +184,7 @@ class MeanAnomalyTrueAnomaly:
     set_true_anomaly(true_anomaly)
         Set the true anomaly and change accordingly the mean anomaly attribute.
     """
+
     def __init__(self, eccentricity_norm):
         """
         Parameters
@@ -203,8 +221,8 @@ class MeanAnomalyTrueAnomaly:
         true_anomaly [rad]: float
         """
         self.trueAnomaly = true_anomaly
-        eccentric_anomaly = 2 * np.arctan(np.sqrt((1 - self.eccentricityNorm)/(1 + self.eccentricityNorm)) *
-                                          np.tan(self.trueAnomaly/2))
+        eccentric_anomaly = 2 * np.arctan(np.sqrt((1 - self.eccentricityNorm) / (1 + self.eccentricityNorm)) *
+                                          np.tan(self.trueAnomaly / 2))
         self.meanAnomaly = eccentric_anomaly - self.eccentricityNorm * np.sin(eccentric_anomaly)
 
     def _mean_anomaly_func(self, eccentric_anomaly):
@@ -214,4 +232,3 @@ class MeanAnomalyTrueAnomaly:
     def _mean_anomaly_derivative(self, eccentric_anomaly):
         mean_anomaly_derivative = 1 - self.eccentricityNorm * np.cos(eccentric_anomaly)
         return mean_anomaly_derivative
-
