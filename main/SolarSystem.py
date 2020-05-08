@@ -17,6 +17,7 @@ class Sun:
     mass : float
         mass of the Sun [km]
     """
+    name = "Sun"
     gravitationalParameter = 132712000000.0
     radius = 696000.0
     mass = 1.989*1e30
